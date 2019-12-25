@@ -1,0 +1,70 @@
+#!/bin/bash
+
+#see if the correct number of arguments are entered
+#if not an error message is displayed and the program will be exited
+if (test $# -eq 0 || test $# -eq 1 || test $# -eq 2);
+then echo "You have the incorrect number of arguments. The correct syntax is: ./backup SWITCH FILES DEST MESSAGE. Please try again.";
+	exit ;
+fi
+
+if (test $# -eq 3 && $1 == "-D");
+then echo "You have the incorrect number of arguments. The correct syntax is: ./backup SWITCH FILES DEST MESSAGE. Please try again.";
+        exit ;
+fi
+
+#initializing variables for the different number of arguments
+if [ "$1" == "-D" ];
+then
+	switch="$1";
+        files="$2";
+        dest="$3";
+        for (( i=4; i<=$#; i++))
+        do
+                message="$message ${!i}";
+        done
+else
+	switch="";
+        files="$1";
+        dest="$2";
+        for (( i=3; i<=$#; i++))
+        do
+                message="$message ${!i}";
+        done
+fi
+
+message="${message:1}"
+#echo "$switch ,  $files , $dest , $message"
+
+#making a dest directory if it does not exist
+if test ! -d "$dest";
+then
+	mkdir "$dest";
+fi
+
+#initializng a variable that records the current date
+now=`date +'%m_%d_%Y'`;
+
+#echo "$now";
+
+#backing up the files into dest
+tar cvfP "$dest"/"backup$now.tar" "$files";
+
+#if the switch is -D, then the files stored in $files will be deleted
+if [ "$switch" == "-D" ]
+	then rm -r "$files";
+fi
+
+#changing the permission so that the owner can only have rw
+cd "$dest"
+chmod 600 backup$now.tar;
+
+#check if there is a log file within $dest, if not, a new one will be created with the
+#current time and the message, if not the current time and the message will be inserted into the backup.log
+if !(test -f backups.log)
+then
+	echo "`date +'%m/%d/%Y/%T'` $message" >backups.log;
+else
+	echo "`date +'%m/%d/%Y/%T'` $message" >>backups.log;
+fi
+#NAME: Luke Zhang
+#ID: 260771133
